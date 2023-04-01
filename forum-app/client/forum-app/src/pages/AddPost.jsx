@@ -4,6 +4,7 @@ import { Field, Form, Formik } from "formik";
 import { bgColor, inputBgColor, primaryColor, shadow } from "../assets/colors-shadows";
 
 import Button from "../components/Button";
+import FormikInput from "../components/FormikInput";
 import { HOME_PATH } from "../routes/consts";
 import { UserContext } from "../contexts/UserContext";
 import styled from "styled-components";
@@ -13,10 +14,12 @@ import { useNavigate } from "react-router-dom";
 import { usePostQuestion } from "../hooks/useQuestions";
 
 const loginFormInitialValues = {
+  title: '',
   question: "",
 };
 
 const loginValidationSchema = Yup.object().shape({
+  title: Yup.string().required("Required"),
   question: Yup.string().required("Required"),
 });
 
@@ -27,6 +30,7 @@ const AddPost = () => {
   const handleSubmit = (post) => {
     const question = {
       user_id: userObject._id,
+      title: post.title,
       question: post.question
     }
     console.log(question);
@@ -45,6 +49,7 @@ const AddPost = () => {
         validationSchema={loginValidationSchema}>
         <StyledForm>
           <Title>Feel free to ask</Title>
+          <FormikInput name="title" type="text" placeholder="Title" />
           <Field name="question" as={StyledTextArea} placeholder="Write your question here ..." />
           <Button isBlue type="submit">
             Submit question

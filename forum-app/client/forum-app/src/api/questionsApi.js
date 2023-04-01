@@ -10,5 +10,11 @@ export const fetchQuestions = () => {
 };
 
 export const postQuestion = (post) => {
+  console.log(post);
   return axios.post(POST_QUESTION, post).then((response) => response.data);
+};
+
+export const fetchOneQuestion = (id) => {
+  console.log(id);
+  return axios.get(`http://localhost:8080/question/${id}`).then((response) => response.data);
 };

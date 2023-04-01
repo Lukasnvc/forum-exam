@@ -18,6 +18,7 @@ const Navbar = () => {
       <BtnContainer>
         {isLoggedIn ? (
           <>
+          <NavItem onClick={() => navigate(HOME_PATH)}><span>HOME</span></NavItem>
           <NavItem onClick={() => navigate(ADD_PATH)}><span>ADD QUESTIONS</span></NavItem>
           <NavItem ><span>MY QUESTIONS</span></NavItem>
             <NavItem onClick={handleLogOut}><span>LOGOUT</span></NavItem>
