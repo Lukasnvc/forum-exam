@@ -10,7 +10,7 @@ export const HOME_PATH = "/";
 export const ADD_PATH = "/add";
 export const LOGIN_PATH = "/login";
 export const REGISTER_PATH = "/register";
-export const POST_PATH = "/question";
+export const POST_PATH = "/question/:id";
 
 export const mainLayoutRoutes = {
   Layout: MainLayout,

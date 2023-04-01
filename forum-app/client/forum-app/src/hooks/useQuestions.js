@@ -1,5 +1,5 @@
-import { QueryKey, useMutation, useQuery } from "@tanstack/react-query";
-import { fetchQuestions, postQuestion } from "../api/questionsApi";
+import { fetchOneQuestion, fetchQuestions, postQuestion } from "../api/questionsApi";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 const QUESTIONS = "QUESTIONS_DATA";
 
@@ -11,4 +11,8 @@ export const useGetQuestions = () => {
 
 export const usePostQuestion = () => {
   return useMutation(postQuestion);
+};
+
+export const useOneQuestion = (id) => {
+  return useQuery([QUESTIONS], () => fetchOneQuestion(id));
 };

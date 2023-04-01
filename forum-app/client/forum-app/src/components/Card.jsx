@@ -1,42 +1,95 @@
+import * as Yup from "yup";
+
+import {FaRegThumbsUp, FaWindowClose} from 'react-icons/fa'
 import { FiEdit, FiFileText } from 'react-icons/fi';
-import { inputBgColor, primaryColor, secondaryColor, shadow } from "../assets/colors-shadows";
+import { Field, Form, Formik } from 'formik';
+import { HOME_PATH, LOGIN_PATH, POST_PATH } from '../routes/consts';
+import { generatePath, useNavigate } from 'react-router-dom';
+import { hoverColor, inputBgColor, primaryColor, secondaryColor, shadow } from "../assets/colors-shadows";
+import { useContext, useState } from 'react';
 
+import Answer from "./Answer";
 import Button from './Button';
-import { LOGIN_PATH } from '../routes/consts';
 import { UserContext } from '../contexts/UserContext';
+import { postAnswer } from "../api/answersApi";
 import styled from "styled-components"
-import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { toast } from "react-hot-toast";
+import { usePostAnswer } from "../hooks/useAnswers";
 
-const Card = ({ date, question, answers, edited }) => {
-  const { isLoggedIn } = useContext(UserContext)
+const answerFormInitialValues = {
+  answer: "",
+};
+
+const answerValidationSchema = Yup.object().shape({
+  answer: Yup.string().required("Required"),
+});
+
+const Card = ({ id, date, title, question, answers, edited }) => {
+
+  const { isLoggedIn, userObject } = useContext(UserContext)
   const navigate = useNavigate()
+  const [show, setShow] = useState(false)
+  const navigatePath = (id) => {
+    const path = generatePath(POST_PATH, { id });
+    navigate(path)
+  }
+
+  const handleSubmit = async (x) => {
+    const { answer } = x
+    const post = {
+      answer: answer,
+      user_id: userObject._id
+    }
+    try {
+      console.log(id, post)
+      const response = await postAnswer( post, id);
+      toast.success('Answer posted')
+      navigate(HOME_PATH)
+      setShow(false)
+    } catch (err) {
+      toast.error('Something went wrong')
+    }
+  }
   return (
     <Wrapper>
       <Post>
         <PostTop>
           <span>Created: {date}</span>
-          {edited ? <span>Edited <FiEdit/></span> : <span>Not edited <FiFileText/></span>}
+          <div>
+            {edited ? <span>Edited <FiEdit /></span> : <span>Not edited <FiFileText /></span>}
+            {isLoggedIn && <Like><FaRegThumbsUp/></Like>}
+          </div>
         </PostTop>
         <PostBotom>
+          <h3 onClick={() => navigatePath(id)}>{title}</h3>
           <p>{question}</p>
           <Buttons>
             {isLoggedIn ? (
-              <Button isBlue>Comment</Button>
+              <Button onClick={() => {setShow(true)}} isBlue>Comment</Button>
             ) : 
             <Button onClick={() => navigate(LOGIN_PATH)}>Login for commenting</Button>}
-            
           </Buttons>
         </PostBotom>
       </Post>
-      {answers.map((ans) => (
-        <Comment key={ans._id}>
-          <CommentTop>
-            {ans.edited ? <span>Edited <FiEdit/></span> : <span>Not edited <FiFileText/></span>}
-          </CommentTop>
-          <CommentBottom><p>{ans.answer}</p></CommentBottom>
-        </Comment>
-      ))}
+      {show && (
+        <>
+        <Formik
+        initialValues={answerFormInitialValues}
+        onSubmit={handleSubmit}
+      validationSchema={answerValidationSchema}
+        >
+            <StyledForm>
+              <FaWindowClose onClick={() => setShow(false)}/>
+          <Field name="answer" as={StyledTextArea} placeholder="Write your answer here ..." />
+          <Button isBlue type="submit">
+            Submit answer
+          </Button>
+        </StyledForm>
+        </Formik>
+        </>
+      )
+      }
+      {answers && <Answer answers={answers}/> }
     </Wrapper>
   )
 }
@@ -65,6 +118,11 @@ const PostTop = styled.div`
   justify-content: space-between;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
   span {
     font-size: 0.7rem;
     font-weight: 600;
@@ -78,6 +136,19 @@ const PostTop = styled.div`
 `
 const PostBotom = styled.div`
 padding: 20px;
+  h3 {
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0 50px;
+    padding-bottom: 10px;
+    overflow-y: hidden;
+    border-bottom: 1px solid ${primaryColor};
+    cursor: pointer;
+    &:hover {
+      border-bottom: 1px solid ${secondaryColor};
+      color: ${secondaryColor};
+    }
+  }
   p {
     text-transform: capitalize;
     text-indent: 15px;
@@ -86,39 +157,41 @@ padding: 20px;
     max-height: 200px;
   }
 `
-const Comment = styled.div`
-  width: 90%;
-  box-shadow: ${shadow};
-  border: 3px solid ${secondaryColor};
-  border-top: none;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-`
 
-const CommentTop = styled.div`
-  margin: 0;
-  background-color: ${inputBgColor};
-  padding: 5px 20px;
+
+const StyledForm = styled(Form)`
+  position: relative;
+margin-bottom: 10px;
   display: flex;
-  justify-content: end;
-  span {
-    font-size: 0.7rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    svg {
-      font-size: 1rem;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  gap: 16px;
+  svg {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: ${primaryColor};
+    cursor: pointer;
+    &:hover {
+      color: ${hoverColor};
     }
   }
+`;
+
+const StyledTextArea = styled.textarea`
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  border-radius: 4px;
+  color: black;
+  background-color: ${inputBgColor};
+  overflow-x: scroll;
+  padding: 15px 14px;
+  border: none;
+  outline: none;
 `
 
-const CommentBottom = styled.div`
-padding: 0 20px;
-  p {
-    text-transform: capitalize;
-  }
-`
 const Buttons = styled.div`
   display: flex;
   justify-content: end;
@@ -126,4 +199,16 @@ const Buttons = styled.div`
     font-size: 1rem;
     padding: 5px 15px;
   }
+`
+
+const Like = styled.div`
+  svg{
+    color: ${primaryColor};
+  }
+  cursor: pointer;
+  &:hover {
+    svg{
+      color: ${hoverColor};
+    }
+    }
 `

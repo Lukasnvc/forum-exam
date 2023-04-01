@@ -1,11 +1,12 @@
 import * as Yup from "yup";
 
 import { Form, Formik } from "formik";
-import { bgColor, primaryColor, shadow } from "../assets/colors-shadows";
+import { bgColor, blueWhite, primaryColor, shadow } from "../assets/colors-shadows";
 import { useContext, useState } from "react";
 
 import Background from '../assets/background.png';
 import Button from "../components/Button";
+import { FaUserCircle } from 'react-icons/fa';
 import FormikInput from "../components/FormikInput";
 import { REGISTER_PATH } from "../routes/consts";
 import { SlLogin } from "react-icons/sl";
@@ -49,8 +50,9 @@ const Login = () => {
         initialValues={loginFormInitialValues}
         onSubmit={handleSubmit}
         validationSchema={loginValidationSchema}>
-        <StyledForm>
-          <Title>
+          <StyledForm>
+            <StyledIcon/>
+            <Title>
             Login
             <SlLogin />
           </Title>
@@ -93,7 +95,7 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${bgColor};
+  background-color: ${blueWhite};
   box-shadow: ${shadow};
 `;
 
@@ -102,18 +104,26 @@ const StyledForm = styled(Form)`
   margin: 60px auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 `;
+
+const StyledIcon = styled(FaUserCircle)`
+  font-size: 4rem;
+  color: ${primaryColor};
+
+`
 
 const BtnWrapper = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
+  gap: 3px;
 `;
 const Title = styled.p`
   font-size: 24px;
   text-align: center;
-  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;

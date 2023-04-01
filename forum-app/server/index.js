@@ -62,6 +62,11 @@ app.post("/login", async (req, res) => {
               as: "answers",
             },
           },
+          {
+            $project: {
+              password: 0,
+            },
+          },
         ])
         .toArray();
       await con.close();
@@ -73,6 +78,47 @@ app.post("/login", async (req, res) => {
     } else {
       res.status(400).send("Bad request");
     }
+  } catch (err) {
+    res.status(500).send({ err });
+  }
+});
+
+app.get("/user/:id", async (req, res) => {
+  try {
+    const key = req.params.id;
+    const con = await client.connect();
+    const data = await con
+      .db("forum")
+      .collection("users")
+      .aggregate([
+        {
+          $match: { _id: new ObjectId(key) },
+        },
+        {
+          $lookup: {
+            from: "questions",
+            localField: "_id",
+            foreignField: "user_id",
+            as: "questions",
+          },
+        },
+        {
+          $lookup: {
+            from: "answers",
+            localField: "_id",
+            foreignField: "user_id",
+            as: "answer",
+          },
+        },
+        {
+          $project: {
+            password: 0,
+          },
+        },
+      ])
+      .toArray();
+    await con.close();
+    res.send(data);
   } catch (err) {
     res.status(500).send({ err });
   }
@@ -102,6 +148,56 @@ app.get("/questions", async (req, res) => {
   }
 });
 
+app.get("/question/:id", async (req, res) => {
+  const key = req.params.id;
+  try {
+    const con = await client.connect();
+    const data = await con
+      .db("forum")
+      .collection("questions")
+      .aggregate([
+        { $match: { _id: new ObjectId(key) } },
+        {
+          $lookup: {
+            from: "answers",
+            localField: "_id",
+            foreignField: "question_id",
+            as: "answers",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $project: {
+            _id: "$_id",
+            date: "$date",
+            title: "$title",
+            question: "$question",
+            edited: "$edited",
+            user: {
+              _id: "$user_id",
+            },
+            answers: "$answers",
+          },
+        },
+        { $unwind: "$user" },
+        { $unwind: "$user._id" },
+      ])
+      .toArray();
+
+    await con.close();
+    res.send(data);
+  } catch (err) {
+    res.status(500).send({ err });
+  }
+});
+
 app.post("/questions", async (req, res) => {
   try {
     if (req.body.question && req.body.user_id) {
@@ -111,6 +207,7 @@ app.post("/questions", async (req, res) => {
         .collection("questions")
         .insertOne({
           date: new Date().toLocaleDateString("lt"),
+          title: req.body.title,
           question: req.body.question,
           user_id: new ObjectId(req.body.user_id),
           edited: false,
