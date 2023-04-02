@@ -1,4 +1,9 @@
-import { fetchOneQuestion, fetchQuestions, postQuestion } from "../api/questionsApi";
+import {
+  deleteQuestion,
+  fetchOneQuestion,
+  fetchQuestions,
+  postQuestion,
+} from "../api/questionsApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 const QUESTIONS = "QUESTIONS_DATA";
@@ -11,6 +16,10 @@ export const useGetQuestions = () => {
 
 export const usePostQuestion = () => {
   return useMutation(postQuestion);
+};
+
+export const useDeleteQuestion = () => {
+  return useMutation(deleteQuestion);
 };
 
 export const useOneQuestion = (id) => {

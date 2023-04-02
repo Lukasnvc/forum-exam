@@ -5,28 +5,37 @@ import { useContext, useState } from 'react';
 import { FaArrowUp } from 'react-icons/fa';
 import {FaRegThumbsUp} from 'react-icons/fa'
 import { GoCommentDiscussion } from 'react-icons/go';
+import {RiDeleteBin2Line} from 'react-icons/ri'
 import { UserContext } from '../contexts/UserContext';
-import styled from "styled-components"
+import { deleteAnswer } from '../api/answersApi';
+import styled from "styled-components";
+import { toast } from "react-hot-toast";
+import { useGetQuestions } from '../hooks/useQuestions';
 
 const Answer = ({ answers }) => {
-  const { isLoggedIn } = useContext(UserContext)
+  const { isLoggedIn, userObject } = useContext(UserContext)
   const [show, setShow] = useState(false)
+  const { refetch } = useGetQuestions();
+
+  const handleDelete = (id) => {
+    deleteAnswer(id)
+    toast.success("Answer deleted");
+    refetch()
+  }
   return (
-    <>
+    <Wrapper>
       {show ? (
         <>
-          <Wrapper>
             <StyledMin onClick={() => setShow(false)}/>
           {answers.map((ans) => (
             <Comment key={ans._id}>
               <CommentTop>
-                {isLoggedIn && <Like><FaRegThumbsUp/></Like>}
+              {ans.user_id === userObject._id ? <Delete onClick={() => handleDelete(ans._id)}/> : <>{isLoggedIn && <Like><FaRegThumbsUp/></Like>}</>}
                 {ans.edited ? <span>Edited <FiEdit /></span> : <span>Not edited <FiFileText /></span>}
               </CommentTop>
               <CommentBottom><p>{ans.answer}</p></CommentBottom>
             </Comment>
           ))}
-        </Wrapper>
         </>)
         :
         (
@@ -44,19 +53,15 @@ const Answer = ({ answers }) => {
             </Comment>
           </>
         )}
-   </>
+        </Wrapper>
   )
 }
 
 export default Answer
 
 const Comment = styled.div`
-  width: 90%;
+  width: 100%;
   box-shadow: ${shadow};
-  border: 3px solid ${secondaryColor};
-  border-top: none;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
 `
 
 const CommentTop = styled.div`
@@ -94,10 +99,15 @@ const Buttons = styled.div`
 
 const Wrapper = styled.div`
   position: relative;
-  width: 100%;
+  width: 90%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 3px solid ${secondaryColor};
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-shadow: ${shadow};
 `
 
 const StyledMin = styled(FaArrowUp)`
@@ -105,7 +115,7 @@ const StyledMin = styled(FaArrowUp)`
     color: ${primaryColor};
     font-size: 2.2rem;
     bottom: 10px;
-    right: 10px;
+    right: -45px;
     cursor: pointer;
     &:hover {
       color: ${hoverColor};
@@ -131,4 +141,13 @@ const Like = styled.div`
       color: ${hoverColor};
     }
     }
+`
+
+const Delete = styled(RiDeleteBin2Line)`
+  color: ${primaryColor};
+  cursor: pointer;
+  transition: 300ms;
+  &:hover {
+    color: ${hoverColor};
+  }
 `

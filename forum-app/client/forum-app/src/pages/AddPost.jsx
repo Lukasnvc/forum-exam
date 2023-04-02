@@ -33,7 +33,6 @@ const AddPost = () => {
       title: post.title,
       question: post.question
     }
-    console.log(question);
     postQuestion(question)
     toast.success("Post added");
     navigate(HOME_PATH);
@@ -74,8 +73,9 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   gap: 50px;
-  background-color: ${bgColor};
+  /* background-color: ${bgColor}; */
   box-shadow: ${shadow};
+  margin-top: 100px;
 `;
 
 const SideWrapper = styled.div`

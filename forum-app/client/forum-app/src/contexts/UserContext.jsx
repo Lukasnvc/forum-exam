@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
+  const [change, setChange] = useState(false)
   const [user, setUser] = useLocalStorage("userObject", null);
   const [userObject, setUserObject] = useState("");
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const UserProvider = ({ children }) => {
 
   return (
     <UserContext.Provider
-      value={{ user, isLoggedIn, setUser, handleLogOut, handleLogIn, userObject }}>
+      value={{ user, isLoggedIn, setUser, handleLogOut, handleLogIn, userObject, change, setChange }}>
       {children}
     </UserContext.Provider>
   );

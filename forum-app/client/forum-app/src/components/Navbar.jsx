@@ -1,4 +1,4 @@
-import { ADD_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../routes/consts';
+import { ADD_PATH, EDIT_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../routes/consts';
 import { blueWhite, hoverColor, primaryColor, shadow } from '../assets/colors-shadows'
 
 import { MdOutlineForum } from 'react-icons/md';
@@ -20,7 +20,7 @@ const Navbar = () => {
           <>
           <NavItem onClick={() => navigate(HOME_PATH)}><span>HOME</span></NavItem>
           <NavItem onClick={() => navigate(ADD_PATH)}><span>ADD QUESTIONS</span></NavItem>
-          <NavItem ><span>MY QUESTIONS</span></NavItem>
+          <NavItem onClick={() => navigate(EDIT_PATH)} ><span>MY QUESTIONS</span></NavItem>
             <NavItem onClick={handleLogOut}><span>LOGOUT</span></NavItem>
             </>
         ) : (
@@ -40,6 +40,7 @@ export default Navbar
 
 const Wrapper = styled.div`
   position: fixed;
+  z-index: 99;
   top: 0;
   display: flex;
   align-items: center;
