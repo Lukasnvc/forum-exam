@@ -7,5 +7,5 @@ const MainLayout = ({ children }) => {
 export default MainLayout;
 
 const Wrapper = styled.div`
-  margin-top: 100px;
+  margin-top: 60px;
 `;

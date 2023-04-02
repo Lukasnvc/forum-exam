@@ -112,7 +112,6 @@ const StyledForm = styled(Form)`
 const StyledIcon = styled(FaUserCircle)`
   font-size: 4rem;
   color: ${primaryColor};
-
 `
 
 const BtnWrapper = styled.div`

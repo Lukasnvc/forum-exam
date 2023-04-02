@@ -13,6 +13,9 @@ const Button = ({ children, isBlue, ...rest }) => {
 export default Button;
 
 const StyledBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 20px;
   font-size: 1.2rem;
   color: white;

@@ -1,5 +1,6 @@
 import AddPost from "../pages/AddPost";
 import AuthLayout from "../layouts/AuthLayout";
+import EditPage from "../pages/EditPage";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import MainLayout from "../layouts/MainLayout";
@@ -11,6 +12,7 @@ export const ADD_PATH = "/add";
 export const LOGIN_PATH = "/login";
 export const REGISTER_PATH = "/register";
 export const POST_PATH = "/question/:id";
+export const EDIT_PATH = "/myquestions";
 
 export const mainLayoutRoutes = {
   Layout: MainLayout,
@@ -18,6 +20,7 @@ export const mainLayoutRoutes = {
     { path: HOME_PATH, Component: Home },
     { path: POST_PATH, Component: Post },
     { path: ADD_PATH, Component: AddPost },
+    { path: EDIT_PATH, Component: EditPage },
   ],
 };
 

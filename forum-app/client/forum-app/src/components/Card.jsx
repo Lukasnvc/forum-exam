@@ -10,11 +10,13 @@ import { useContext, useState } from 'react';
 
 import Answer from "./Answer";
 import Button from './Button';
+import {RiDeleteBin2Line} from 'react-icons/ri'
 import { UserContext } from '../contexts/UserContext';
 import { postAnswer } from "../api/answersApi";
 import styled from "styled-components"
 import { toast } from "react-hot-toast";
-import { usePostAnswer } from "../hooks/useAnswers";
+import { useDeleteQuestion } from "../hooks/useQuestions";
+import { useGetQuestions } from "../hooks/useQuestions";
 
 const answerFormInitialValues = {
   answer: "",
@@ -24,9 +26,10 @@ const answerValidationSchema = Yup.object().shape({
   answer: Yup.string().required("Required"),
 });
 
-const Card = ({ id, date, title, question, answers, edited }) => {
-
-  const { isLoggedIn, userObject } = useContext(UserContext)
+const Card = ({ id, date, title, question, answers, edited = false, user_id }) => {
+  const { refetch } = useGetQuestions();
+  const { mutateAsync: deleteQuestion } = useDeleteQuestion();
+  const { isLoggedIn, userObject, setChange } = useContext(UserContext)
   const navigate = useNavigate()
   const [show, setShow] = useState(false)
   const navigatePath = (id) => {
@@ -35,21 +38,30 @@ const Card = ({ id, date, title, question, answers, edited }) => {
   }
 
   const handleSubmit = async (x) => {
+    setChange(prevValue => !prevValue)
     const { answer } = x
     const post = {
       answer: answer,
       user_id: userObject._id
     }
     try {
-      console.log(id, post)
       const response = await postAnswer( post, id);
       toast.success('Answer posted')
       navigate(HOME_PATH)
       setShow(false)
+      refetch()
     } catch (err) {
       toast.error('Something went wrong')
     }
   }
+
+  const handleDelete = () => {
+    deleteQuestion(id)
+    toast.success("Post deleted");
+    refetch()
+  }
+
+  
   return (
     <Wrapper>
       <Post>
@@ -57,7 +69,7 @@ const Card = ({ id, date, title, question, answers, edited }) => {
           <span>Created: {date}</span>
           <div>
             {edited ? <span>Edited <FiEdit /></span> : <span>Not edited <FiFileText /></span>}
-            {isLoggedIn && <Like><FaRegThumbsUp/></Like>}
+            {user_id === userObject._id ? <Delete onClick={handleDelete}/> : <>{isLoggedIn && <Like><FaRegThumbsUp/></Like>}</>}
           </div>
         </PostTop>
         <PostBotom>
@@ -89,7 +101,7 @@ const Card = ({ id, date, title, question, answers, edited }) => {
         </>
       )
       }
-      {answers && <Answer answers={answers}/> }
+      {answers.length > 0 && <Answer answers={answers} /> }
     </Wrapper>
   )
 }
@@ -211,4 +223,14 @@ const Like = styled.div`
       color: ${hoverColor};
     }
     }
+`
+
+const Delete = styled(RiDeleteBin2Line)`
+  color: ${primaryColor};
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: 300ms;
+  &:hover {
+    color: ${hoverColor};
+  }
 `
