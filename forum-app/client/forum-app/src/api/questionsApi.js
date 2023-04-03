@@ -2,11 +2,10 @@ import axios from "axios";
 
 export const BASE_URL = "http://localhost:8080";
 
-const GET_ALL = `${BASE_URL}/questions`;
 const POST_QUESTION = `${BASE_URL}/questions`;
 
 export const fetchQuestions = () => {
-  return axios.get(GET_ALL).then((response) => response.data);
+  return axios.get(POST_QUESTION).then((response) => response.data);
 };
 
 export const postQuestion = (post) => {
@@ -19,4 +18,8 @@ export const fetchOneQuestion = (id) => {
 
 export const deleteQuestion = (id) => {
   return axios.delete(`${POST_QUESTION}/${id}`).then((response) => response.data);
+};
+
+export const patchQuestion = (id, post) => {
+  return axios.patch(`${POST_QUESTION}/${id}`, post).then((response) => response.data);
 };

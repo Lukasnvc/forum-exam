@@ -1,31 +1,23 @@
-import * as Yup from "yup";
-
 import { Field, Form, Formik } from "formik";
-import { bgColor, inputBgColor, primaryColor, shadow } from "../assets/colors-shadows";
+import { addFormInitialValues, addValidationSchema } from "../components/const/formikValidations";
+import { bgColor, cardsBg, inputBgColor, primaryColor, shadow } from "../assets/colors-shadows";
 
 import Button from "../components/Button";
+import {FaUserCircle} from 'react-icons/fa'
 import FormikInput from "../components/FormikInput";
 import { HOME_PATH } from "../routes/consts";
 import { UserContext } from "../contexts/UserContext";
 import styled from "styled-components";
 import toast from "react-hot-toast";
 import { useContext } from "react";
+import { useGetQuestions } from "../hooks/useQuestions";
 import { useNavigate } from "react-router-dom";
 import { usePostQuestion } from "../hooks/useQuestions";
-
-const loginFormInitialValues = {
-  title: '',
-  question: "",
-};
-
-const loginValidationSchema = Yup.object().shape({
-  title: Yup.string().required("Required"),
-  question: Yup.string().required("Required"),
-});
 
 const AddPost = () => {
   const navigate = useNavigate();
   const { userObject } = useContext(UserContext);
+  const { refetch } = useGetQuestions();
   const {mutateAsync: postQuestion} = usePostQuestion()
   const handleSubmit = (post) => {
     const question = {
@@ -35,17 +27,23 @@ const AddPost = () => {
     }
     postQuestion(question)
     toast.success("Post added");
+    refetch()
     navigate(HOME_PATH);
   };
   return (
     <Wrapper>
       <SideWrapper>
-        <p>Welcome <span>{userObject.name} {userObject.last_name}</span> most of your questions can by answered by comunity, just formulate it correctly ;)</p>
+        <div>
+        <h2>Welcome</h2>
+        <StyledIcon><FaUserCircle/></StyledIcon>
+          <span>{userObject.name} {userObject.last_name}</span>
+        </div>
+        <p>Most of your questions can by answered by comunity, just formulate it correctly ;)</p>
         </SideWrapper>
       <Formik
-        initialValues={loginFormInitialValues}
+        initialValues={addFormInitialValues}
         onSubmit={handleSubmit}
-        validationSchema={loginValidationSchema}>
+        validationSchema={addValidationSchema}>
         <StyledForm>
           <Title>Feel free to ask</Title>
           <FormikInput name="title" type="text" placeholder="Title" />
@@ -63,6 +61,7 @@ export default AddPost;
 
 const Wrapper = styled.div`
   width: fit-content;
+  background-color: ${cardsBg};
   height: 70vh;
   width: 80vw;
   margin: 0 auto;
@@ -80,14 +79,22 @@ const Wrapper = styled.div`
 
 const SideWrapper = styled.div`
   max-width: 300px;
-  p {
-    text-indent: 10px;
-    line-height: 1.5;
-    font-size: 1.2rem;
-  }
-  span {
+  div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    span {
+    text-align: center;
     font-weight: 600;
     text-transform: capitalize;
+  }
+  }
+  p {
+    text-align: center;
+    text-indent: 15px;
+    line-height: 1.6;
+    font-size: 1.2rem;
+    font-style: italic;
   }
 `
 
@@ -123,3 +130,9 @@ const StyledTextArea = styled.textarea`
   border: none;
   outline: none;
 `;
+
+const StyledIcon = styled.span`
+  font-size: 5rem;
+  color: ${primaryColor};
+  margin-top: 30px;
+`

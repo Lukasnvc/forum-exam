@@ -1,15 +1,18 @@
-import { inputBgColor, primaryColor } from "../assets/colors-shadows";
+import { inputBgColor, primaryColor, shadow } from "../assets/colors-shadows";
 
+import Button from "../components/Button";
 import Card from "../components/Card";
 import {FaUserCircle} from 'react-icons/fa'
 import { FallingLines } from 'react-loader-spinner';
+import { HOME_PATH } from "../routes/consts";
 import { UserContext } from "../contexts/UserContext";
 import styled from "styled-components";
 import { useContext } from "react";
 import { useGetQuestions } from "../hooks/useQuestions";
+import { useNavigate } from "react-router-dom";
 
 const EditPage = () => {
-
+  const navigate = useNavigate()
   const { userObject } = useContext(UserContext)
   const { isLoading, data: questions } = useGetQuestions();
   const filteredQuestions = questions && questions.filter((question) => question.user_id === userObject._id);
@@ -19,8 +22,9 @@ const EditPage = () => {
       <LeftSide>
         <div>
           <h2>Welcome</h2>
-          <StyledIcon/>
+          <StyledIcon><FaUserCircle/></StyledIcon>
           <h3>{userObject.name} {userObject.last_name}</h3>
+          <MyQuestions onClick={()=> navigate(HOME_PATH)}>ALL QUESTIONS</MyQuestions>
           <p>Your questions: {userObject.questions.length}</p>
           <p>Your answers: {userObject.answers.length}</p>
           <p>Liked posts: {userObject.liked_posts.length}</p>
@@ -64,6 +68,7 @@ const Container = styled.div`
 const LeftSide = styled.div`
  min-width: 200px;
   div {
+    box-shadow: ${shadow};
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -72,13 +77,17 @@ const LeftSide = styled.div`
     height: 100vh;
     padding: 20px;
     background-color: ${inputBgColor};
+    h2{
+      margin: 50px 0;
+    }
     h3{
       text-transform: capitalize;
+      margin-bottom: 20px;
     }
   }
 `
 
-const StyledIcon = styled(FaUserCircle)`
+const StyledIcon = styled.span`
   font-size: 4rem;
   color: ${primaryColor};
   margin-top: 30px;
@@ -90,4 +99,9 @@ const LoaderWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+`
+
+const MyQuestions = styled(Button)`
+  padding: 5px 10px;
+  font-size: 1rem;
 `

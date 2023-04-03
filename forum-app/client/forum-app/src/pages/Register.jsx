@@ -1,7 +1,6 @@
-import * as Yup from "yup";
-
 import { Form, Formik } from "formik";
 import { blueWhite, primaryColor, shadow } from "../assets/colors-shadows";
+import { registerFormInitialValues, registerValidationSchema } from "../components/const/formikValidations";
 
 import Background from '../assets/background.png';
 import Button from "../components/Button";
@@ -14,24 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { useRegisterUser } from "../hooks/useUsers";
 import { useState } from "react";
 
-const loginFormInitialValues = {
-  name: "",
-  last_name: "",
-  email: "",
-  password: "",
-  confirm_password: "",
-};
-
-const loginValidationSchema = Yup.object().shape({
-  name: Yup.string().required("Required"),
-  last_name: Yup.string().required("Required"),
-  email: Yup.string().email("Email should contain @").required("Required"),
-  password: Yup.string().required("Required"),
-  confirm_password: Yup.string()
-    .required("Please retype your password.")
-    .oneOf([Yup.ref("password")], "Your passwords do not match."),
-});
-
 const Login = () => {
   const [error, setError] = useState(false);
   const {mutateAsync: registerUser} = useRegisterUser()
@@ -39,7 +20,7 @@ const Login = () => {
   const handleSubmit = async (user) => {
     delete user.confirm_password;
     try { 
-      const response = await registerUser(user);
+      await registerUser(user);
       navigate(LOGIN_PATH);
       toast.success('Succesfuly registered')
     } catch (err) {
@@ -51,9 +32,9 @@ const Login = () => {
     <BackgroundWrapper>
     <Wrapper>
       <Formik
-        initialValues={loginFormInitialValues}
+        initialValues={registerFormInitialValues}
         onSubmit={handleSubmit}
-        validationSchema={loginValidationSchema}>
+        validationSchema={registerValidationSchema}>
           <StyledForm>
           <Title>
             Register <IoIosCreate />

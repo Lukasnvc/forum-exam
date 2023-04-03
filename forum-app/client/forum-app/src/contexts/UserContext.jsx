@@ -1,6 +1,6 @@
-import { HOME_PATH, LOGIN_PATH } from "../routes/consts";
 import { createContext, useState } from "react";
 
+import { LOGIN_PATH } from "../routes/consts";
 import { toast } from "react-hot-toast";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  const [change, setChange] = useState(false)
   const [user, setUser] = useLocalStorage("userObject", null);
   const [userObject, setUserObject] = useState("");
   const navigate = useNavigate();
@@ -31,12 +30,11 @@ const UserProvider = ({ children }) => {
   const handleLogIn = (user) => {
     setUserObject(user);
     setUser(user);
-    navigate(HOME_PATH)
   };
 
   return (
     <UserContext.Provider
-      value={{ user, isLoggedIn, setUser, handleLogOut, handleLogIn, userObject, change, setChange }}>
+      value={{ user, isLoggedIn, setUser, handleLogOut, handleLogIn, userObject }}>
       {children}
     </UserContext.Provider>
   );
