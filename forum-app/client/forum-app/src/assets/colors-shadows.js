@@ -4,5 +4,6 @@ export const hoverColor = "#0CBAA6";
 export const inputBgColor = "#eaecef";
 export const bgColor = "#fbfbfb";
 export const blueWhite = "#F5FBFF";
+export const cardsBg = "#f5f9fe";
 
 export const shadow = "rgba(0, 0, 0, 0.24) 0px 3px 8px";

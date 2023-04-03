@@ -1,35 +1,30 @@
-import * as Yup from "yup";
-
-import {FaRegThumbsUp, FaWindowClose} from 'react-icons/fa'
+import {FaRegThumbsUp, FaThumbsUp, FaWindowClose} from 'react-icons/fa'
 import { FiEdit, FiFileText } from 'react-icons/fi';
 import { Field, Form, Formik } from 'formik';
 import { HOME_PATH, LOGIN_PATH, POST_PATH } from '../routes/consts';
+import { addValidationSchema, answerFormInitialValues, answerValidationSchema } from './const/formikValidations';
+import { cardsBg, hoverColor, inputBgColor, primaryColor, secondaryColor, shadow } from "../assets/colors-shadows";
 import { generatePath, useNavigate } from 'react-router-dom';
-import { hoverColor, inputBgColor, primaryColor, secondaryColor, shadow } from "../assets/colors-shadows";
 import { useContext, useState } from 'react';
 
 import Answer from "./Answer";
 import Button from './Button';
+import FormikInput from "./FormikInput";
 import {RiDeleteBin2Line} from 'react-icons/ri'
 import { UserContext } from '../contexts/UserContext';
+import { patchLikesPostsUser } from '../api/usersApi';
+import { patchQuestion } from '../api/questionsApi';
 import { postAnswer } from "../api/answersApi";
 import styled from "styled-components"
 import { toast } from "react-hot-toast";
 import { useDeleteQuestion } from "../hooks/useQuestions";
 import { useGetQuestions } from "../hooks/useQuestions";
 
-const answerFormInitialValues = {
-  answer: "",
-};
-
-const answerValidationSchema = Yup.object().shape({
-  answer: Yup.string().required("Required"),
-});
-
-const Card = ({ id, date, title, question, answers, edited = false, user_id }) => {
+const Card = ({ id, date, title, question, answers, edited = false, user_id, comment }) => {
+  const [isEditing, setIsEditing] = useState(false);
   const { refetch } = useGetQuestions();
   const { mutateAsync: deleteQuestion } = useDeleteQuestion();
-  const { isLoggedIn, userObject, setChange } = useContext(UserContext)
+  const { isLoggedIn, userObject } = useContext(UserContext)
   const navigate = useNavigate()
   const [show, setShow] = useState(false)
   const navigatePath = (id) => {
@@ -38,21 +33,20 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id }) =
   }
 
   const handleSubmit = async (x) => {
-    setChange(prevValue => !prevValue)
     const { answer } = x
     const post = {
       answer: answer,
       user_id: userObject._id
     }
     try {
-      const response = await postAnswer( post, id);
+      await postAnswer( post, id);
       toast.success('Answer posted')
       navigate(HOME_PATH)
       setShow(false)
       refetch()
     } catch (err) {
       toast.error('Something went wrong')
-    }
+    }  
   }
 
   const handleDelete = () => {
@@ -61,27 +55,115 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id }) =
     refetch()
   }
 
-  
+  const handleEdit = async (post) => {
+    try {
+      await patchQuestion(id, post)
+      setIsEditing(false);
+      refetch()
+      toast.success("Question have been edited")
+    } catch (err) {
+      toast.error('Something went wrong')
+    }
+  }
+
+  const handleLike = async () => {
+    const type = { type: "question" }
+    // console.log(userObject._id, id, type)
+    try {
+      await patchLikesPostsUser(userObject._id, id, type)
+      toast.success("Liked Question")
+    } catch (err) {
+      toast.error('Something went wrong')
+    }
+  }
+
+  const isLiked = userObject.liked_posts?.some((post) => post.postId === id && post.type === "question");
+
   return (
     <Wrapper>
       <Post>
-        <PostTop>
+      <PostTop>
           <span>Created: {date}</span>
           <div>
             {edited ? <span>Edited <FiEdit /></span> : <span>Not edited <FiFileText /></span>}
-            {user_id === userObject._id ? <Delete onClick={handleDelete}/> : <>{isLoggedIn && <Like><FaRegThumbsUp/></Like>}</>}
+            {user_id === userObject._id ? (
+              <>
+                {isEditing ? (
+                  <span>
+                    <StyledButtom onClick={() => setIsEditing(false)}>Cancel</StyledButtom>
+                  </span>
+                ) : (
+                  <span>
+                    <StyledButtom onClick={() => setIsEditing(true)}>Edit</StyledButtom>
+                    <Delete onClick={handleDelete} />
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                  {isLoggedIn && <> {isLiked ? <Like><FaThumbsUp /></Like> : <Like onClick={handleLike}><FaRegThumbsUp /></Like>}
+                  </>
+                  }
+              </>
+            )}
           </div>
         </PostTop>
         <PostBotom>
-          <h3 onClick={() => navigatePath(id)}>{title}</h3>
-          <p>{question}</p>
-          <Buttons>
-            {isLoggedIn ? (
-              <Button onClick={() => {setShow(true)}} isBlue>Comment</Button>
-            ) : 
-            <Button onClick={() => navigate(LOGIN_PATH)}>Login for commenting</Button>}
-          </Buttons>
-        </PostBotom>
+        {isEditing ? (
+          <Formik
+            initialValues={{ title, question }}
+            onSubmit={handleEdit}
+            validationSchema={addValidationSchema}
+          >
+            {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+              <StyledForm onSubmit={handleSubmit}>
+                <FormikInput
+                  type="text"
+                  name="title"
+                  value={values.title}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Title"
+                />
+                {errors.title && touched.title }
+                <StyledTextArea
+                  name="question"
+                  value={values.question}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Question"
+                />
+                {errors.question && touched.question }
+                <Button isBlue type="submit">
+                  Save Changes
+                </Button>
+              </StyledForm>
+            )}
+          </Formik>
+        ) : (
+          <>
+            <h3>{title}</h3>
+            <p>{question}</p>
+          </>
+        )}
+        <Buttons>
+          {isLoggedIn ? (
+            <>
+              {comment ? (
+                <Button onClick={() => setShow(true)} isBlue>
+                  Comment
+                </Button>
+              ) : (
+                <Button onClick={() => navigatePath(id)} isBlue>
+                  TO QUESTION
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button onClick={() => navigate(LOGIN_PATH)}>Login for commenting</Button>
+          )}
+        </Buttons>
+      </PostBotom>
       </Post>
       {show && (
         <>
@@ -119,7 +201,7 @@ const Post = styled.div`
   width: 100%;
   box-shadow: ${shadow};
   border: 3px solid ${primaryColor};
-  
+  background-color: ${cardsBg};
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
 `
@@ -134,6 +216,7 @@ const PostTop = styled.div`
     display: flex;
     gap: 10px;
     align-items: center;
+    
   }
   span {
     font-size: 0.7rem;
@@ -155,11 +238,6 @@ padding: 20px;
     padding-bottom: 10px;
     overflow-y: hidden;
     border-bottom: 1px solid ${primaryColor};
-    cursor: pointer;
-    &:hover {
-      border-bottom: 1px solid ${secondaryColor};
-      color: ${secondaryColor};
-    }
   }
   p {
     text-transform: capitalize;
@@ -168,6 +246,12 @@ padding: 20px;
     overflow-x: scroll;
     max-height: 200px;
   }
+  &:hover {
+    h3 {
+      border-bottom: 1px solid ${secondaryColor};
+      color: ${secondaryColor};
+    }
+    }
 `
 
 
@@ -234,3 +318,9 @@ const Delete = styled(RiDeleteBin2Line)`
     color: ${hoverColor};
   }
 `
+
+const StyledButtom = styled(Button)`
+  font-size: 1rem;
+  padding: 5px 10px;
+`
+

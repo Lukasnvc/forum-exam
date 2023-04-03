@@ -1,6 +1,7 @@
-import { loginUser, registerUser } from "../api/usersApi";
+import { getUser, loginUser, registerUser } from "../api/usersApi";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { useMutation } from "@tanstack/react-query";
+const USER = "USER";
 
 export const useRegisterUser = () => {
   return useMutation(registerUser);
@@ -8,4 +9,8 @@ export const useRegisterUser = () => {
 
 export const useLoginUser = () => {
   return useMutation(loginUser);
+};
+
+export const useGetUser = (id) => {
+  return useQuery([USER], () => getUser(id));
 };

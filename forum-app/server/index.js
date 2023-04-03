@@ -8,11 +8,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const URI = process.env.URI;
 
-const client = new MongoClient(URI);
+const client = new MongoClient(URI, {
+  connectTimeoutMS: 10000,
+  maxIdleTimeMS: 10000,
+});
 
 app.use(cors());
 app.use(express.json());
 
+// +
 app.post("/register", async (req, res) => {
   try {
     if (req.body.name && req.body.last_name && req.body.email && req.body.password) {
@@ -35,6 +39,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// +
 app.post("/login", async (req, res) => {
   try {
     if (req.body.email && req.body.password) {
@@ -83,6 +88,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// +
 app.get("/user/:id", async (req, res) => {
   try {
     const key = req.params.id;
@@ -107,7 +113,7 @@ app.get("/user/:id", async (req, res) => {
             from: "answers",
             localField: "_id",
             foreignField: "user_id",
-            as: "answer",
+            as: "answers",
           },
         },
         {
@@ -117,13 +123,14 @@ app.get("/user/:id", async (req, res) => {
         },
       ])
       .toArray();
-    await con.close();
+    // await con.close();
     res.send(data);
   } catch (err) {
     res.status(500).send({ err });
   }
 });
 
+// +
 app.get("/questions", async (req, res) => {
   try {
     const con = await client.connect();
@@ -141,16 +148,17 @@ app.get("/questions", async (req, res) => {
         },
       ])
       .toArray();
-    await con.close();
+    // await con.close();
     res.send(data);
   } catch (err) {
     res.status(500).send({ err });
   }
 });
 
+// +
 app.get("/question/:id", async (req, res) => {
-  const key = req.params.id;
   try {
+    const key = req.params.id;
     const con = await client.connect();
     const data = await con
       .db("forum")
@@ -198,6 +206,7 @@ app.get("/question/:id", async (req, res) => {
   }
 });
 
+// +
 app.post("/questions", async (req, res) => {
   try {
     if (req.body.question && req.body.user_id) {
@@ -206,7 +215,13 @@ app.post("/questions", async (req, res) => {
         .db("forum")
         .collection("questions")
         .insertOne({
-          date: new Date().toLocaleDateString("lt"),
+          date: new Date().toLocaleString("lt", {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+          }),
           title: req.body.title,
           question: req.body.question,
           user_id: new ObjectId(req.body.user_id),
@@ -222,10 +237,11 @@ app.post("/questions", async (req, res) => {
   }
 });
 
+// +
 app.patch("/questions/:id", async (req, res) => {
   const key = req.params.id;
   try {
-    if (req.body.question) {
+    if (req.body.question && req.body.title) {
       const con = await client.connect();
       const data = await con
         .db("forum")
@@ -234,13 +250,14 @@ app.patch("/questions/:id", async (req, res) => {
           { _id: new ObjectId(key) },
           {
             $set: {
+              title: req.body.title,
               question: req.body.question,
               edited: true,
             },
           }
         );
       await con.close();
-      req.send(data);
+      res.send(data);
     } else {
       res.status(400).send("Bad request");
     }
@@ -249,6 +266,7 @@ app.patch("/questions/:id", async (req, res) => {
   }
 });
 
+// +
 app.delete("/questions/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -264,26 +282,27 @@ app.delete("/questions/:id", async (req, res) => {
   }
 });
 
-app.get("/questions/:id/answers", async (req, res) => {
-  try {
-    const key = req.params.id;
-    const con = await client.connect();
-    const data = await con
-      .db("forum")
-      .collection("answers")
-      .aggregate([
-        {
-          $match: { question_id: new ObjectId(key) },
-        },
-      ])
-      .toArray();
-    await con.close();
-    res.send(data);
-  } catch (err) {
-    res.status(500).send({ err });
-  }
-});
+// app.get("/questions/:id/answers", async (req, res) => {
+//   try {
+//     const key = req.params.id;
+//     const con = await client.connect();
+//     const data = await con
+//       .db("forum")
+//       .collection("answers")
+//       .aggregate([
+//         {
+//           $match: { question_id: new ObjectId(key) },
+//         },
+//       ])
+//       .toArray();
+//     await con.close();
+//     res.send(data);
+//   } catch (err) {
+//     res.status(500).send({ err });
+//   }
+// });
 
+// +
 app.post("/questions/:id/answers", async (req, res) => {
   try {
     if (req.body.answer && req.body.user_id) {
@@ -308,6 +327,7 @@ app.post("/questions/:id/answers", async (req, res) => {
   }
 });
 
+// +
 app.patch("/answers/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -335,6 +355,7 @@ app.patch("/answers/:id", async (req, res) => {
   }
 });
 
+// +
 app.delete("/answers/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -350,97 +371,79 @@ app.delete("/answers/:id", async (req, res) => {
   }
 });
 
-app.patch("/user/:id/posts/:post_id", async (req, res) => {
-  const userId = req.params.id;
-  const postId = req.params.post_id;
-  const postType = req.body.post_type;
-  const isLiked = req.body.is_liked;
+// +
+app.patch("/user/:id/posts/:post_id/likes", async (req, res) => {
+  if (req.body.type && req.params.post_id) {
+    const userId = req.params.id;
+    const postId = req.params.post_id;
+    const newLikedPost = { postId: new ObjectId(postId), type: req.body.type };
+    try {
+      const con = await client.connect();
+      const user = await con
+        .db("forum")
+        .collection("users")
+        .updateOne({ _id: new ObjectId(userId) }, { $push: { liked_posts: newLikedPost } });
 
-  try {
-    const con = await client.connect();
-    const user = await con
-      .db("forum")
-      .collection("users")
-      .findOneAndUpdate(
-        { _id: new ObjectId(userId) },
-        {
-          $pull: {
-            liked_posts: { post_id: postId, post_type: postType },
-            disliked_posts: { post_id: postId, post_type: postType },
-          },
-        }
-      );
-    let updateObj = {};
-    if (isLiked) {
-      updateObj = {
-        $push: { liked_posts: { post_id: postId, post_type: postType } },
-      };
-    } else {
-      updateObj = {
-        $push: { disliked_posts: { post_id: postId, post_type: postType } },
-      };
+      await con.close();
+      res.send(user);
+    } catch (err) {
+      res.status(500).send({ err });
     }
-    const data = await con
-      .db("forum")
-      .collection("users")
-      .updateOne({ _id: new ObjectId(userId) }, updateObj);
-    await con.close();
-    res.send(data);
-  } catch (err) {
-    res.status(500).send({ err });
+  } else {
+    res.status(400).send("bad request");
   }
 });
 
-app.get("/user/:id/posts", async (req, res) => {
-  const userId = req.params.id;
-  try {
-    const con = await client.connect();
-    const user = await con
-      .db("forum")
-      .collection("users")
-      .findOne({ _id: new ObjectId(userId) });
+// app.get("/user/:id/posts", async (req, res) => {
+//   const userId = req.params.id;
+//   try {
+//     const con = await client.connect();
+//     const user = await con
+//       .db("forum")
+//       .collection("users")
+//       .findOne({ _id: new ObjectId(userId) });
 
-    const likedQuestions = user.liked_posts.filter((post) => post.post_type === "question");
-    const dislikedQuestions = user.disliked_posts.filter((post) => post.post_type === "question");
-    const likedAnswers = user.liked_posts.filter((post) => post.post_type === "answer");
-    const dislikedAnswers = user.disliked_posts.filter((post) => post.post_type === "answer");
+//     const likedQuestions = user.liked_posts.filter((post) => post.post_type === "question");
+//     const dislikedQuestions = user.disliked_posts.filter((post) => post.post_type === "question");
+//     const likedAnswers = user.liked_posts.filter((post) => post.post_type === "answer");
+//     const dislikedAnswers = user.disliked_posts.filter((post) => post.post_type === "answer");
 
-    const data = {
-      liked_questions: likedQuestions,
-      disliked_questions: dislikedQuestions,
-      liked_answers: likedAnswers,
-      disliked_answers: dislikedAnswers,
-    };
+//     const data = {
+//       liked_questions: likedQuestions,
+//       disliked_questions: dislikedQuestions,
+//       liked_answers: likedAnswers,
+//       disliked_answers: dislikedAnswers,
+//     };
 
-    await con.close();
-    res.send(data);
-  } catch (err) {
-    res.status(500).send({ err });
-  }
-});
+//     await con.close();
+//     res.send(data);
+//   } catch (err) {
+//     res.status(500).send({ err });
+//   }
+// });
 
-app.patch("/user/:id/posts", async (req, res) => {
-  const userId = req.params.id;
-  const { likedPosts, dislikedPosts } = req.body;
+// app.patch("/user/:id/posts", async (req, res) => {
+//   const userId = req.params.id;
+//   const { likedPosts, dislikedPosts } = req.body;
 
-  try {
-    const con = await client.connect();
-    const collection = con.db("forum").collection("users");
+//   try {
+//     const con = await client.connect();
+//     const collection = con.db("forum").collection("users");
 
-    const user = await collection.findOne({ _id: new ObjectId(userId) });
-    user.liked_posts = user.liked_posts.filter((postId) => likedPosts.includes(postId));
-    user.disliked_posts = user.disliked_posts.filter((postId) => dislikedPosts.includes(postId));
+//     const user = await collection.findOne({ _id: new ObjectId(userId) });
+//     user.liked_posts = user.liked_posts.filter((postId) => likedPosts.includes(postId));
+//     user.disliked_posts = user.disliked_posts.filter((postId) => dislikedPosts.includes(postId));
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: { liked_posts: user.liked_posts, disliked_posts: user.disliked_posts } }
-    );
-    await con.close();
-    res.send(result);
-  } catch (err) {
-    res.status(500).send({ err });
-  }
-});
+//     const result = await collection.updateOne(
+//       { _id: new ObjectId(userId) },
+//       { $set: { liked_posts: user.liked_posts, disliked_posts: user.disliked_posts } }
+//     );
+//     await con.close();
+//     res.send(result);
+//   } catch (err) {
+//     res.status(500).send({ err });
+//   }
+// });
 
 app.listen(PORT, () => {
   console.log(`Forum is running on ${PORT} port`);

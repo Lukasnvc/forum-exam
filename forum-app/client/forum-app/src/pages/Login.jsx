@@ -1,30 +1,19 @@
-import * as Yup from "yup";
-
 import { Form, Formik } from "formik";
-import { bgColor, blueWhite, primaryColor, shadow } from "../assets/colors-shadows";
+import { HOME_PATH, REGISTER_PATH } from "../routes/consts";
+import { blueWhite, primaryColor, shadow } from "../assets/colors-shadows";
+import { loginFormInitialValues, loginValidationSchema } from "../components/const/formikValidations";
 import { useContext, useState } from "react";
 
 import Background from '../assets/background.png';
 import Button from "../components/Button";
 import { FaUserCircle } from 'react-icons/fa';
 import FormikInput from "../components/FormikInput";
-import { REGISTER_PATH } from "../routes/consts";
 import { SlLogin } from "react-icons/sl";
 import { UserContext } from "../contexts/UserContext";
 import styled from "styled-components";
 import { toast } from "react-hot-toast";
 import { useLoginUser } from "../hooks/useUsers";
 import { useNavigate } from "react-router-dom";
-
-const loginFormInitialValues = {
-  email: "",
-  password: "",
-};
-
-const loginValidationSchema = Yup.object().shape({
-  email: Yup.string().email("Email should contain @").required("Required"),
-  password: Yup.string().required("Required"),
-});
 
 const Login = () => {
   const {mutateAsync: loginUser} = useLoginUser()
@@ -38,6 +27,7 @@ const Login = () => {
       const [obj] = response;
       handleLogIn(obj);
       toast.success("Logged in");
+      navigate(HOME_PATH)
     } catch (err) {
       setError(true)
       toast.error("No such user");

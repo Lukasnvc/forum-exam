@@ -1,7 +1,7 @@
-import { ADD_PATH, EDIT_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../routes/consts';
+import { ADD_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../routes/consts';
 import { blueWhite, hoverColor, primaryColor, shadow } from '../assets/colors-shadows'
 
-import { MdOutlineForum } from 'react-icons/md';
+import Logo from '../assets/logo.png';
 import { UserContext } from '../contexts/UserContext';
 import styled from 'styled-components';
 import { useContext } from 'react';
@@ -12,15 +12,12 @@ const Navbar = () => {
   const navigate = useNavigate()
   return (
     <Wrapper>
-      <StyledLink href='' target='blank'>
-        <MdOutlineForum/>
-      </StyledLink>
+      <StyledLink />
       <BtnContainer>
         {isLoggedIn ? (
           <>
           <NavItem onClick={() => navigate(HOME_PATH)}><span>HOME</span></NavItem>
           <NavItem onClick={() => navigate(ADD_PATH)}><span>ADD QUESTIONS</span></NavItem>
-          <NavItem onClick={() => navigate(EDIT_PATH)} ><span>MY QUESTIONS</span></NavItem>
             <NavItem onClick={handleLogOut}><span>LOGOUT</span></NavItem>
             </>
         ) : (
@@ -71,18 +68,12 @@ const NavItem = styled.div`
   }
 `;
 
-const StyledLink = styled.a`
-  margin: 3px;
-  color: black;
-  cursor: pointer;
-  svg {
-    font-size: 1.4rem;
-    margin: 0 20px;
-    cursor: pointer;
-    padding: 0;
-    transition: 300ms;
-    &:hover {
-      color: ${hoverColor};
-    }
-  }
+const StyledLink = styled.div`
+  background-image: url(${Logo});
+  margin-left: 30px;
+  height: 50px;
+  width: 120px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 `;
