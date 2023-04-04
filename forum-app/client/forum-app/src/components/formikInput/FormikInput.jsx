@@ -1,6 +1,6 @@
 import { ErrorMessage, Field } from "formik";
 
-import { inputBgColor } from "../assets/colors-shadows";
+import { inputBgColor } from "../../assets/colors-shadows";
 import styled from "styled-components";
 
 const FormikInput = ({ name, placeholder, type = "text" }) => {

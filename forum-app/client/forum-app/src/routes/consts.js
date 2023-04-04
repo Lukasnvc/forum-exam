@@ -1,11 +1,11 @@
-import AddPost from "../pages/AddPost";
+import AddPost from "../pages/addPost/AddPost";
 import AuthLayout from "../layouts/AuthLayout";
-import EditPage from "../pages/EditPage";
-import Home from "../pages/Home";
-import Login from "../pages/Login";
+import EditPage from "../pages/editPage/EditPage";
+import Home from "../pages/home/Home";
+import Login from "../pages/login/Login";
 import MainLayout from "../layouts/MainLayout";
-import Post from "../pages/Post";
-import Register from "../pages/Register";
+import Post from "../pages/post/Post";
+import Register from "../pages/register/Register";
 
 export const HOME_PATH = "/";
 export const ADD_PATH = "/add";

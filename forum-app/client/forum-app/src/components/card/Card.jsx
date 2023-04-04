@@ -1,30 +1,31 @@
+import { Buttons, Delete, Like, Post, PostBotom, PostTop, StyledButtom, StyledForm, StyledTextArea, Wrapper, } from './styles';
 import {FaRegThumbsUp, FaThumbsUp, FaWindowClose} from 'react-icons/fa'
 import { FiEdit, FiFileText } from 'react-icons/fi';
-import { Field, Form, Formik } from 'formik';
-import { HOME_PATH, LOGIN_PATH, POST_PATH } from '../routes/consts';
-import { addValidationSchema, answerFormInitialValues, answerValidationSchema } from './const/formikValidations';
-import { cardsBg, hoverColor, inputBgColor, primaryColor, secondaryColor, shadow } from "../assets/colors-shadows";
+import { Field, Formik } from 'formik';
+import { HOME_PATH, LOGIN_PATH, POST_PATH } from '../../routes/consts';
+import { addValidationSchema, answerFormInitialValues, answerValidationSchema } from '../../const/formikValidations';
 import { generatePath, useNavigate } from 'react-router-dom';
 import { useContext, useState } from 'react';
 
-import Answer from "./Answer";
-import Button from './Button';
-import FormikInput from "./FormikInput";
-import {RiDeleteBin2Line} from 'react-icons/ri'
-import { UserContext } from '../contexts/UserContext';
-import { patchLikesPostsUser } from '../api/usersApi';
-import { patchQuestion } from '../api/questionsApi';
-import { postAnswer } from "../api/answersApi";
-import styled from "styled-components"
+import Answer from "../answers/Answer";
+import Button from '../button/Button';
+import FormikInput from "../formikInput/FormikInput";
+import { UserContext } from '../../contexts/UserContext';
+import { patchLikesPostsUser } from '../../api/usersApi';
+import { patchQuestion } from '../../api/questionsApi';
+import { postAnswer } from "../../api/answersApi";
 import { toast } from "react-hot-toast";
-import { useDeleteQuestion } from "../hooks/useQuestions";
-import { useGetQuestions } from "../hooks/useQuestions";
+import { useDeleteQuestion } from "../../hooks/useQuestions";
+import { useGetQuestions } from "../../hooks/useQuestions";
+import { useGetUser } from '../../hooks/useUsers';
 
 const Card = ({ id, date, title, question, answers, edited = false, user_id, comment }) => {
+  const { isLoggedIn, userObject } = useContext(UserContext)
+  const {refetch: userRefetch}=useGetUser(userObject._id)
   const [isEditing, setIsEditing] = useState(false);
   const { refetch } = useGetQuestions();
   const { mutateAsync: deleteQuestion } = useDeleteQuestion();
-  const { isLoggedIn, userObject } = useContext(UserContext)
+
   const navigate = useNavigate()
   const [show, setShow] = useState(false)
   const navigatePath = (id) => {
@@ -43,23 +44,28 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id, com
       toast.success('Answer posted')
       navigate(HOME_PATH)
       setShow(false)
-      refetch()
+      await refetch()
     } catch (err) {
       toast.error('Something went wrong')
     }  
   }
 
-  const handleDelete = () => {
-    deleteQuestion(id)
-    toast.success("Post deleted");
-    refetch()
+  const handleDelete = async () => {
+    try {
+      await deleteQuestion(id)
+      toast.success("Post deleted");
+      await refetch()
+      await userRefetch(userObject._id)
+    } catch (err) {
+      toast.error('Something went wrong')
+    }  
   }
 
   const handleEdit = async (post) => {
     try {
       await patchQuestion(id, post)
       setIsEditing(false);
-      refetch()
+      await refetch()
       toast.success("Question have been edited")
     } catch (err) {
       toast.error('Something went wrong')
@@ -72,6 +78,8 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id, com
     try {
       await patchLikesPostsUser(userObject._id, id, type)
       toast.success("Liked Question")
+      await userRefetch(userObject._id)
+      await refetch()
     } catch (err) {
       toast.error('Something went wrong')
     }
@@ -101,7 +109,7 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id, com
               </>
             ) : (
               <>
-                  {isLoggedIn && <> {isLiked ? <Like><FaThumbsUp /></Like> : <Like onClick={handleLike}><FaRegThumbsUp /></Like>}
+                  {isLoggedIn && <> {isLiked ? <Like onClick={handleLike}><FaThumbsUp/></Like> : <Like onClick={handleLike}><FaRegThumbsUp /></Like>}
                   </>
                   }
               </>
@@ -190,137 +198,5 @@ const Card = ({ id, date, title, question, answers, edited = false, user_id, com
 
 export default Card
 
-const Wrapper = styled.div`
-  width: 80%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`
-const Post = styled.div`
-  width: 100%;
-  box-shadow: ${shadow};
-  border: 3px solid ${primaryColor};
-  background-color: ${cardsBg};
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-`
-const PostTop = styled.div`
-  background-color: ${inputBgColor};
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  div {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    
-  }
-  span {
-    font-size: 0.7rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    svg {
-      font-size: 1rem;
-    }
-  }
-`
-const PostBotom = styled.div`
-padding: 20px;
-  h3 {
-    text-transform: uppercase;
-    text-align: center;
-    margin: 0 50px;
-    padding-bottom: 10px;
-    overflow-y: hidden;
-    border-bottom: 1px solid ${primaryColor};
-  }
-  p {
-    text-transform: capitalize;
-    text-indent: 15px;
-    line-height: 1.5;
-    overflow-x: scroll;
-    max-height: 200px;
-  }
-  &:hover {
-    h3 {
-      border-bottom: 1px solid ${secondaryColor};
-      color: ${secondaryColor};
-    }
-    }
-`
 
-
-const StyledForm = styled(Form)`
-  position: relative;
-margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  gap: 16px;
-  svg {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: ${primaryColor};
-    cursor: pointer;
-    &:hover {
-      color: ${hoverColor};
-    }
-  }
-`;
-
-const StyledTextArea = styled.textarea`
-  width: 100%;
-  height: 100%;
-  font-size: 16px;
-  border-radius: 4px;
-  color: black;
-  background-color: ${inputBgColor};
-  overflow-x: scroll;
-  padding: 15px 14px;
-  border: none;
-  outline: none;
-`
-
-const Buttons = styled.div`
-  display: flex;
-  justify-content: end;
-  Button {
-    font-size: 1rem;
-    padding: 5px 15px;
-  }
-`
-
-const Like = styled.div`
-  svg{
-    color: ${primaryColor};
-  }
-  cursor: pointer;
-  &:hover {
-    svg{
-      color: ${hoverColor};
-    }
-    }
-`
-
-const Delete = styled(RiDeleteBin2Line)`
-  color: ${primaryColor};
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: 300ms;
-  &:hover {
-    color: ${hoverColor};
-  }
-`
-
-const StyledButtom = styled(Button)`
-  font-size: 1rem;
-  padding: 5px 10px;
-`
 

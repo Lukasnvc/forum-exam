@@ -18,7 +18,6 @@ export const getUser = (id) => {
 };
 
 export const patchLikesPostsUser = (userId, postId, type) => {
-  console.log(userId, postId, type);
   return axios
     .patch(`${BASE_URL}/user/${userId}/posts/${postId}/likes`, type)
     .then((response) => response.data);

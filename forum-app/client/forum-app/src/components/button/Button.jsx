@@ -1,4 +1,4 @@
-import { hoverColor, shadow } from "../assets/colors-shadows";
+import { hoverColor, shadow } from "../../assets/colors-shadows";
 
 import styled from "styled-components";
 
