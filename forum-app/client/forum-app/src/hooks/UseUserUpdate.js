@@ -4,7 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 import { useGetUser } from "./useUsers";
 
 const useUpdateUserInner = (userId) => {
-  const { data } = useGetUser(userId);
+  const { data, dataUpdatedAt } = useGetUser(userId);
 
   const updateUser = useMemo(() => data?.[0] ?? null, [data]);
 
@@ -14,7 +14,7 @@ const useUpdateUserInner = (userId) => {
     if (userObject?._id === userId && userObject !== updateUser && updateUser) {
       handleLogIn(updateUser);
     }
-  }, [userObject, userId, updateUser, handleLogIn]);
+  }, [userObject, userId, updateUser, handleLogIn, dataUpdatedAt]);
 };
 
 export const useUpdateUser = () => {

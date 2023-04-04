@@ -1,17 +1,15 @@
+import {Container, LeftSide, LoaderWrapper, MyQuestions, StyledButtom, StyledIcon, Wrapper} from "./styles"
 import {FaSort, FaUserAltSlash} from 'react-icons/fa'
-import { inputBgColor, primaryColor, shadow } from '../assets/colors-shadows';
 import { useContext, useMemo, useState } from 'react';
 
-import Button from '../components/Button';
-import Card from '../components/Card';
-import { EDIT_PATH } from '../routes/consts';
+import Card from '../../components/card/Card';
+import { EDIT_PATH } from '../../routes/consts';
 import {FaUserCircle} from 'react-icons/fa'
 import { FallingLines } from 'react-loader-spinner';
-import { UserContext } from '../contexts/UserContext';
-import styled from 'styled-components';
-import { useGetQuestions } from '../hooks/useQuestions';
+import { UserContext } from '../../contexts/UserContext';
+import { useGetQuestions } from '../../hooks/useQuestions';
 import { useNavigate } from 'react-router-dom';
-import { useUpdateUser } from '../hooks/UseUserUpdate';
+import { useUpdateUser } from '../../hooks/UseUserUpdate';
 
 const Home = () => {
   const { userObject, isLoggedIn } = useContext(UserContext)
@@ -19,8 +17,10 @@ const Home = () => {
   const [sortBy, setSortBy] = useState("");
   const { isLoading, data: questions } = useGetQuestions();
   const navigate = useNavigate()
+  if (isLoggedIn) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useUpdateUser(userObject._id)
+  }
 
   const sortQuestions = (sortOrder) => {
     setSortBy(sortOrder);
@@ -100,72 +100,3 @@ const Home = () => {
 export default Home
 
 
-const Wrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 50px;
-  overflow-y: scroll;
-  padding-bottom: 30px;
-`
-
-const StyledButtom = styled(Button)`
-  font-size: 1rem;
-  padding: 5px 10px;
-  margin-top: 30px;
-  svg {
-    margin-left: 5px;
-  }
-`
-
-const LoaderWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`
-
-const Container = styled.div`
-  display: flex;
-  width: 100vw;
-  height: 100%;
-  gap: 50px;
-  position: relative;
-`
-
-const LeftSide = styled.div`
- min-width: 200px;
-  div {
-    box-shadow: ${shadow};
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 200px;
-    height: 100vh;
-    padding: 20px;
-    background-color: ${inputBgColor};
-    h2{
-      margin: 50px 0;
-    }
-    h3{
-      text-transform: capitalize;
-      margin-bottom: 20px;
-    }
-  }
-`
-
-const MyQuestions = styled(Button)`
-  padding: 5px 10px;
-  font-size: 1rem;
-`
-
-const StyledIcon = styled.span`
-  font-size: 4rem;
-  color: ${primaryColor};
-  margin-top: 30px;
-`

@@ -16,7 +16,6 @@ const client = new MongoClient(URI, {
 app.use(cors());
 app.use(express.json());
 
-// +
 app.post("/register", async (req, res) => {
   try {
     if (req.body.name && req.body.last_name && req.body.email && req.body.password) {
@@ -39,7 +38,6 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// +
 app.post("/login", async (req, res) => {
   try {
     if (req.body.email && req.body.password) {
@@ -88,7 +86,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// +
 app.get("/user/:id", async (req, res) => {
   try {
     const key = req.params.id;
@@ -123,14 +120,12 @@ app.get("/user/:id", async (req, res) => {
         },
       ])
       .toArray();
-    // await con.close();
     res.send(data);
   } catch (err) {
     res.status(500).send({ err });
   }
 });
 
-// +
 app.get("/questions", async (req, res) => {
   try {
     const con = await client.connect();
@@ -148,14 +143,12 @@ app.get("/questions", async (req, res) => {
         },
       ])
       .toArray();
-    // await con.close();
     res.send(data);
   } catch (err) {
     res.status(500).send({ err });
   }
 });
 
-// +
 app.get("/question/:id", async (req, res) => {
   try {
     const key = req.params.id;
@@ -206,7 +199,6 @@ app.get("/question/:id", async (req, res) => {
   }
 });
 
-// +
 app.post("/questions", async (req, res) => {
   try {
     if (req.body.question && req.body.user_id) {
@@ -237,7 +229,6 @@ app.post("/questions", async (req, res) => {
   }
 });
 
-// +
 app.patch("/questions/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -266,7 +257,6 @@ app.patch("/questions/:id", async (req, res) => {
   }
 });
 
-// +
 app.delete("/questions/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -282,27 +272,6 @@ app.delete("/questions/:id", async (req, res) => {
   }
 });
 
-// app.get("/questions/:id/answers", async (req, res) => {
-//   try {
-//     const key = req.params.id;
-//     const con = await client.connect();
-//     const data = await con
-//       .db("forum")
-//       .collection("answers")
-//       .aggregate([
-//         {
-//           $match: { question_id: new ObjectId(key) },
-//         },
-//       ])
-//       .toArray();
-//     await con.close();
-//     res.send(data);
-//   } catch (err) {
-//     res.status(500).send({ err });
-//   }
-// });
-
-// +
 app.post("/questions/:id/answers", async (req, res) => {
   try {
     if (req.body.answer && req.body.user_id) {
@@ -327,7 +296,6 @@ app.post("/questions/:id/answers", async (req, res) => {
   }
 });
 
-// +
 app.patch("/answers/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -355,7 +323,6 @@ app.patch("/answers/:id", async (req, res) => {
   }
 });
 
-// +
 app.delete("/answers/:id", async (req, res) => {
   const key = req.params.id;
   try {
@@ -371,7 +338,6 @@ app.delete("/answers/:id", async (req, res) => {
   }
 });
 
-// +
 app.patch("/user/:id/posts/:post_id/likes", async (req, res) => {
   if (req.body.type && req.params.post_id) {
     const userId = req.params.id;
@@ -382,10 +348,27 @@ app.patch("/user/:id/posts/:post_id/likes", async (req, res) => {
       const user = await con
         .db("forum")
         .collection("users")
-        .updateOne({ _id: new ObjectId(userId) }, { $push: { liked_posts: newLikedPost } });
+        .findOne({ _id: new ObjectId(userId) });
+
+      const postIndex = user.liked_posts.findIndex((post) => post.postId.toString() === postId);
+      if (postIndex === -1) {
+        await con
+          .db("forum")
+          .collection("users")
+          .updateOne({ _id: new ObjectId(userId) }, { $addToSet: { liked_posts: newLikedPost } });
+        res.send("Post has been added to liked posts.");
+      } else {
+        await con
+          .db("forum")
+          .collection("users")
+          .updateOne(
+            { _id: new ObjectId(userId) },
+            { $pull: { liked_posts: { postId: new ObjectId(postId) } } }
+          );
+        res.send("Post has been removed from liked posts.");
+      }
 
       await con.close();
-      res.send(user);
     } catch (err) {
       res.status(500).send({ err });
     }
@@ -393,57 +376,6 @@ app.patch("/user/:id/posts/:post_id/likes", async (req, res) => {
     res.status(400).send("bad request");
   }
 });
-
-// app.get("/user/:id/posts", async (req, res) => {
-//   const userId = req.params.id;
-//   try {
-//     const con = await client.connect();
-//     const user = await con
-//       .db("forum")
-//       .collection("users")
-//       .findOne({ _id: new ObjectId(userId) });
-
-//     const likedQuestions = user.liked_posts.filter((post) => post.post_type === "question");
-//     const dislikedQuestions = user.disliked_posts.filter((post) => post.post_type === "question");
-//     const likedAnswers = user.liked_posts.filter((post) => post.post_type === "answer");
-//     const dislikedAnswers = user.disliked_posts.filter((post) => post.post_type === "answer");
-
-//     const data = {
-//       liked_questions: likedQuestions,
-//       disliked_questions: dislikedQuestions,
-//       liked_answers: likedAnswers,
-//       disliked_answers: dislikedAnswers,
-//     };
-
-//     await con.close();
-//     res.send(data);
-//   } catch (err) {
-//     res.status(500).send({ err });
-//   }
-// });
-
-// app.patch("/user/:id/posts", async (req, res) => {
-//   const userId = req.params.id;
-//   const { likedPosts, dislikedPosts } = req.body;
-
-//   try {
-//     const con = await client.connect();
-//     const collection = con.db("forum").collection("users");
-
-//     const user = await collection.findOne({ _id: new ObjectId(userId) });
-//     user.liked_posts = user.liked_posts.filter((postId) => likedPosts.includes(postId));
-//     user.disliked_posts = user.disliked_posts.filter((postId) => dislikedPosts.includes(postId));
-
-//     const result = await collection.updateOne(
-//       { _id: new ObjectId(userId) },
-//       { $set: { liked_posts: user.liked_posts, disliked_posts: user.disliked_posts } }
-//     );
-//     await con.close();
-//     res.send(result);
-//   } catch (err) {
-//     res.status(500).send({ err });
-//   }
-// });
 
 app.listen(PORT, () => {
   console.log(`Forum is running on ${PORT} port`);

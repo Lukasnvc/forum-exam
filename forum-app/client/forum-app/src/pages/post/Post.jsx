@@ -1,9 +1,9 @@
+import {LoaderWrapper, Wrapper} from "./styles"
 import React, { useEffect, useState } from 'react'
 
-import Card from '../components/Card'
+import Card from '../../components/card/Card'
 import { FallingLines } from 'react-loader-spinner';
-import { fetchOneQuestion } from '../api/questionsApi'
-import styled from 'styled-components'
+import { fetchOneQuestion } from '../../api/questionsApi'
 import { useParams } from 'react-router-dom'
 
 const Post = () => {
@@ -18,7 +18,7 @@ const Post = () => {
     .catch((error) => {
       console.error(error)
     })
-}, [])
+}, [id])
  
   return (
     <>
@@ -43,19 +43,3 @@ const Post = () => {
 
 export default Post
 
-const Wrapper = styled.div`
-  margin-top: 100px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow-y: scroll;
-`
-const LoaderWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`

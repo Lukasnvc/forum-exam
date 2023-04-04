@@ -1,5 +1,5 @@
 import AllRoutes from "./routes/AllRoutes";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar/Navbar";
 import styled from "styled-components";
 
 function App() {

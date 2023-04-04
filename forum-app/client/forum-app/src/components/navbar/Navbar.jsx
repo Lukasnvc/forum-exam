@@ -1,8 +1,8 @@
-import { ADD_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../routes/consts';
-import { blueWhite, hoverColor, primaryColor, shadow } from '../assets/colors-shadows'
+import { ADD_PATH, HOME_PATH, LOGIN_PATH, REGISTER_PATH } from '../../routes/consts';
+import { blueWhite, hoverColor, primaryColor, shadow } from '../../assets/colors-shadows'
 
-import Logo from '../assets/logo.png';
-import { UserContext } from '../contexts/UserContext';
+import Logo from '../../assets/logo.png';
+import { UserContext } from '../../contexts/UserContext';
 import styled from 'styled-components';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
